@@ -14,6 +14,7 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -39,6 +40,7 @@ public class FlightController {
      */
     @Resource
     private FlightService flightService;
+    @PreAuthorize("hasAuthority('/flight/selectAllFlight')")
     @GetMapping("/selectAllFlight")
     public Result selectAllUser(@RequestParam Integer pageNum,
                                 @RequestParam Integer pageSize,

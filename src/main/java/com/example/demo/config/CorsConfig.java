@@ -12,19 +12,19 @@ import org.springframework.web.filter.CorsFilter;
  * 作者：jerry
  * 日期：2025-07-01
  */
-@Configuration
-public class CorsConfig {
-    private static final long MAX_AGE = 24*60*60;
-
-    @Bean
-    public CorsFilter corsFilter(){
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.addAllowedOrigin("*");
-        corsConfiguration.addAllowedHeader("*");
-        corsConfiguration.addAllowedMethod("*");
-        corsConfiguration.setMaxAge(MAX_AGE);
-        source.registerCorsConfiguration("/**",corsConfiguration);
-        return new CorsFilter(source);
-    }
-}
+//@Configuration
+//public class CorsConfig {
+//    private static final long MAX_AGE = 24*60*60;
+//
+//    @Bean
+//    public CorsFilter corsFilter(){
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        CorsConfiguration corsConfiguration = new CorsConfiguration();
+//        corsConfiguration.addAllowedOrigin("*");
+//        corsConfiguration.addAllowedHeader("*");
+//        corsConfiguration.addAllowedMethod("*");
+//        corsConfiguration.setMaxAge(MAX_AGE);
+//        source.registerCorsConfiguration("/**",corsConfiguration);
+//        return new CorsFilter(source);
+//    }
+//}

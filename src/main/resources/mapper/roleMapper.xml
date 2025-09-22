@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.RoleMapper">
+    <select id="selectAllRole" resultType="com.example.demo.entity.Role">
+        select * from ss_role
+        <where>
+            <if test="roleName != null and roleName != ''">
+                name = #{roleName}
+            </if>
+        </where>
+        <if test="pageNum != null and pageSize != null">
+            LIMIT #{pageNum}, #{pageSize}
+        </if>
+    </select>
+    <select id="totalCount" resultType="Integer">
+        SELECT count(*) FROM ss_role
+        <where>
+            <if test="username != null and username != ''">
+                name LIKE CONCAT('%', #{roleName}, '%')
+            </if>
+        </where>
+    </select>
+
+    <resultMap id="authorityTreeMap" type="com.example.demo.vo.AuthorityTreeVo">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <collection property="children" column="id"
+                    select="selectChildrenByParentId"/>
+    </resultMap>
+    <select id="selectAllAuthorities" resultMap="authorityTreeMap">
+        SELECT * FROM ss_authority ORDER BY parent_id, id
+    </select>
+    <select id="selectChildrenByParentId" resultMap="authorityTreeMap">
+        SELECT * FROM ss_authority WHERE parent_id = #{id}
+    </select>
+</mapper>

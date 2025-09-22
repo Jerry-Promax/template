@@ -2,7 +2,9 @@ package com.example.demo.service;
 
 import com.example.demo.common.Page;
 import com.example.demo.dto.UserDto;
+import com.example.demo.entity.Manager;
 import com.example.demo.entity.User;
+import com.example.demo.vo.UserVo;
 
 import java.util.List;
 
@@ -14,7 +16,7 @@ import java.util.List;
  */
 
 public interface UserService {
-    User login(UserDto user);
+    UserVo login(UserDto user);
 
     void register(User user);
 
@@ -26,15 +28,13 @@ public interface UserService {
 
     void addUser(User user);
 
-    void deleteUser(Long id);
+    void deleteUser(Integer id);
 
-    void deleteBatchUser(List<Long> ids);
+    void deleteBatchUser(List<Integer> ids);
 
     List<User> selectAll();
 
     void auditUser(Integer id);
 
     void blackUser(Integer id, boolean isBlack);
-
-//    User selectByUsername(String username);
 }

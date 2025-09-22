@@ -1,16 +1,28 @@
 package com.example.demo.service.impl;
 
+import com.example.demo.common.BaseContext;
 import com.example.demo.common.Page;
 import com.example.demo.common.StatusConstant;
 import com.example.demo.dto.UserDto;
+import com.example.demo.entity.Authority;
+import com.example.demo.entity.Role;
 import com.example.demo.entity.User;
 import com.example.demo.exception.ServiceException;
+import com.example.demo.mapper.AuthorityMapper;
+import com.example.demo.mapper.RoleMapper;
 import com.example.demo.mapper.UserMapper;
 import com.example.demo.service.UserService;
 import com.example.demo.utils.TokenUtils;
+import com.example.demo.vo.AuthorityVO;
+import com.example.demo.vo.UserVo;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -18,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 类功能描述
@@ -26,14 +39,22 @@ import java.util.Objects;
  * 日期：2025-07-01
  */
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
     @Resource
     private UserMapper userMapper;
     @Resource
     private TokenUtils tokenUtils;
+    @Resource
+    private ManagerServiceImpl managerService;
+    @Resource
+    private AuthorityMapper authorityMapper;
+
+    @Resource
+    private RoleMapper roleMapper;
 
     @Override
-    public User login(UserDto user) {
+    public UserVo login(UserDto user) {
         User dbUser = userMapper.selectByUsernameExact(user.getUsername());
         if (dbUser == null) {
             throw new ServiceException("账号不存在");
@@ -44,13 +65,19 @@ public class UserServiceImpl implements UserService {
         if (!Objects.equals(dbUser.getStatus(), StatusConstant.NORMAL)) {
             throw new ServiceException("用户未审核或为黑名单用户");
         }
-//        String token = TokenUtils.genToken(dbUser.getId().toString(), dbUser.getPassword());
-        Map<String,Object> claims = new HashMap<>();
-        claims.put("id",dbUser.getId());
-        claims.put("username",dbUser.getUsername());
-        String token = tokenUtils.genToken(claims);
-        dbUser.setToken(token);
-        return dbUser;
+        // 4. 加载用户详情（包含权限）
+        UserDetails userDetails = managerService.loadUserByUsername(user.getUsername());
+        // 5. 生成JWT令牌
+        String token = tokenUtils.genToken(userDetails);
+        log.info("生成的原始 Token: {}", token);
+        List<String> authoritiesList = authorityMapper.findById(dbUser.getId()).stream()
+                .map(Authority::getAuthority)
+                .collect(Collectors.toList());
+        return UserVo.builder()
+                        .token(token)
+                                .user(dbUser)
+                                        .authorities(authoritiesList)
+                                            .build();
     }
 
     @Override
@@ -73,10 +100,13 @@ public class UserServiceImpl implements UserService {
         return page;
     }
 
+    @Transactional
     @Override
     public void updatePerson(User user) {
         // 还需要校验修改个人的信息是否合法，后续在做
         userMapper.updatePerson(user);
+        List<Role> role = roleMapper.selectAllRole(null, null, user.getRole());
+        userMapper.updatePersonRoleRel(user.getId(),role.get(0).getId());
     }
 
     @Override
@@ -106,41 +136,30 @@ public class UserServiceImpl implements UserService {
             }
         }
         userMapper.insertUser(user);
+        List<Role> role = roleMapper.selectAllRole(null, null, user.getRole());
+        userMapper.insertPersonRoleRel(user.getId(),role.get(0).getId());
     }
 
     @Override
-    public void deleteUser(Long id) {
-        User currentUser = getCurrentUser();
-        Long currentId = Long.valueOf(currentUser.getId());
-        if (Objects.equals(id, currentId)){
+    public void deleteUser(Integer id) {
+//        User currentUser = tokenUtils.getCurrentUser();
+//        Long currentId = Long.valueOf(currentUser.getId());
+        log.info("当前用户的id为:{}",BaseContext.getCurrentId());
+        if (Objects.equals(id, BaseContext.getCurrentId())){
             throw new ServiceException("不能删除当前用户");
         }
         userMapper.deleteUser(id);
     }
 
     @Override
-    public void deleteBatchUser(List<Long> ids) {
-        User currentUser = getCurrentUser();
-        Long currentId = Long.valueOf(currentUser.getId());
-        for (Long id:ids) {
-            if (!Objects.equals(id, currentId)){
+    public void deleteBatchUser(List<Integer> ids) {
+        for (Integer id:ids) {
+            if (!Objects.equals(id, BaseContext.getCurrentId())){
                 userMapper.deleteUser(id);
             }else{
                 throw new ServiceException("不能删除当前用户");
             }
         }
-    }
-    private User getCurrentUser() {
-        // 优先从request中获取（已在拦截器中设置）
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        User user = (User) request.getAttribute("currentUser");
-
-        if (user == null) {
-            // 若request中没有，则从Token解析
-            user = tokenUtils.getCurrentUser();
-        }
-
-        return user;
     }
     @Override
     public List<User> selectAll() {
@@ -157,8 +176,4 @@ public class UserServiceImpl implements UserService {
         userMapper.blackUser(id,isBlack ? StatusConstant.NORMAL : StatusConstant.DISABLE);
     }
 
-//    @Override
-//    public User selectByUsername(String username) {
-//        return userMapper.selectByUsername(username);
-//    }
 }

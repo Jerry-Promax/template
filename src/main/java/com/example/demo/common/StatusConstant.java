@@ -7,7 +7,7 @@ package com.example.demo.common;
  * 日期：2025-07-11
  */
 public class StatusConstant {
-    public static final Integer UNAUDIT = 1;
+    public static final Integer PENDING = 1;
     public static final Integer NORMAL = 2;
     public static final Integer DISABLE = 3;
 }

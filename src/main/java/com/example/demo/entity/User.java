@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.example.demo.common.ValidPassword;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 public class User {
     private Integer id;
     private String username;
+    @ValidPassword
     private String password;
     private String name;
     private String sex;

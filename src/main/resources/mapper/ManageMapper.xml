@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.ManageMapper">
+    <resultMap id="UserResultMap" type="com.example.demo.entity.Manager">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="username" property="username" jdbcType="VARCHAR"/>
+        <result column="password" property="password" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+
+        <!-- 关联查询权限 -->
+        <collection property="authorities" column="id" ofType="com.example.demo.entity.Authority"
+                    select="com.example.demo.mapper.AuthorityMapper.findById"/>
+    </resultMap>
+
+    <select id="findByUsername" resultMap="UserResultMap">
+        SELECT * FROM all_user WHERE username = #{username}
+    </select>
+</mapper>
