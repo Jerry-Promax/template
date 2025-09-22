@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.FlightMapper">
+
+
+    <insert id="addFlight" parameterType="com.example.demo.entity.Flight">
+        insert into flights
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="flightNumber != null">
+                flight_number,
+            </if>
+            <if test="departureTime != null">
+                departure_time,
+            </if>
+            <if test="arrivalTime != null">
+                arrival_time,
+            </if>
+            <if test="departure != null">
+                departure,
+            </if>
+            <if test="arrival != null">
+                arrival,
+            </if>
+            <if test="totalSeats != null">
+                total_seats,
+            </if>
+            <if test="availableSeats != null">
+                available_seats,
+            </if>
+            <if test="price != null">
+                price
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="flightNumber != null">
+                #{flightNumber},
+            </if>
+            <if test="departureTime != null">
+                #{departureTime},
+            </if>
+            <if test="arrivalTime != null">
+                #{arrivalTime},
+            </if>
+            <if test="departure != null">
+                #{departure},
+            </if>
+            <if test="arrival != null">
+                #{arrival},
+            </if>
+            <if test="totalSeats != null">
+                #{totalSeats},
+            </if>
+            <if test="availableSeats != null">
+                #{availableSeats},
+            </if>
+            <if test="price != null">
+                #{price}
+            </if>
+        </trim>
+    </insert>
+    <update id="updateFlight">
+        update flights
+        <set>
+            <if test="flightNumber != null and flightNumber != ''">
+                flight_number = #{flightNumber},
+            </if>
+            <if test="departureTime != null ">
+                departure_time = #{departureTime},
+            </if>
+            <if test="arrivalTime != null " >
+                arrival_time = #{arrivalTime},
+            </if>
+            <if test="departure != null and departure != ''">
+                departure = #{departure},
+            </if>
+            <if test="arrival != null and arrival != ''">
+                arrival = #{arrival},
+            </if>
+            <if test="totalSeats != null and totalSeats != ''">
+                total_seats = #{totalSeats},
+            </if>
+            <if test="availableSeats != null and availableSeats != ''">
+                available_seats = #{availableSeats},
+            </if>
+            <if test="price != null and price !=''">
+                price = #{price}
+            </if>
+        </set>
+        where flight_id = #{flightId}
+    </update>
+    <select id="selectAllFlight" resultType="com.example.demo.entity.Flight">
+        SELECT * FROM flights
+        <where>
+            <if test="flightNumber != null and flightNumber != ''">
+                flight_number LIKE CONCAT('%', #{flightNumber}, '%')
+            </if>
+        </where>
+        LIMIT #{skipNum}, #{pageSize}
+    </select>
+    <select id="selectCountByPage" resultType="Integer">
+        SELECT count(*) FROM flights
+        <where>
+            <if test="flightNumber != null and flightNumber != ''">
+                flight_number LIKE CONCAT('%', #{flightNumber}, '%')
+            </if>
+        </where>
+    </select>
+</mapper>

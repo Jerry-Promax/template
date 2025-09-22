@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.AuthorityMapper">
+    <resultMap id="AuthorityResultMap" type="com.example.demo.entity.Authority">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="parent_id" property="parentId" jdbcType="INTEGER"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="desc" property="desc" jdbcType="VARCHAR"/>
+        <result column="resource" property="authority" jdbcType="VARCHAR"/>
+        <result column="type" property="type" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <resultMap id="AuthorityVOResultMap" type="com.example.demo.vo.AuthorityVO">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="parent_id" property="parentId" jdbcType="INTEGER"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="desc" property="desc" jdbcType="VARCHAR"/>
+        <result column="resource" property="authority" jdbcType="VARCHAR"/>
+        <result column="type" property="type" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <select id="findById" resultMap="AuthorityResultMap">
+        SELECT a.*, a.resource as 'authority'
+        FROM all_user u
+                 LEFT JOIN ss_user_role_rel ur ON u.id = ur.uid
+                 LEFT JOIN ss_role r ON ur.rid = r.id
+                 LEFT JOIN ss_authority_role_rel ar ON r.id = ar.role_id
+                 LEFT JOIN ss_authority a ON ar.authority_id = a.id
+        WHERE u.id = #{uid}
+          AND a.type = 1
+        GROUP BY a.id
+    </select>
+
+    <select id="selectAllAuthorityByPage" resultMap="AuthorityVOResultMap">
+        SELECT
+        a.id,
+        a.name,
+        a.`desc`,
+        a.type,
+        a.resource,
+        a.parent_id,
+        a.create_at,
+        p.name AS parent_name
+        FROM ss_authority a
+        LEFT JOIN ss_authority p ON a.parent_id = p.id
+        <where>
+            <if test="authorityName != null and authorityName != ''">
+                AND a.name LIKE CONCAT('%', #{authorityName}, '%')
+            </if>
+        </where>
+        ORDER BY a.id
+        <if test="pageNum != null and pageSize != null">
+            LIMIT #{pageNum}, #{pageSize}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        SELECT COUNT(*)
+        FROM ss_authority a
+        LEFT JOIN ss_authority p ON a.parent_id = p.id
+        <where>
+            <if test="authorityName != null and authorityName != ''">
+                AND a.name LIKE CONCAT('%', #{authorityName}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="getParentPermissions" resultType="com.example.demo.entity.Authority">
+        SELECT id, name, parent_id, `desc`, resource, type, create_at
+        FROM ss_authority
+        WHERE type = 0
+        ORDER BY id ASC
+    </select>
+
+    <insert id="addAuthority">
+        INSERT INTO ss_authority
+            (id,parent_id,name,`desc`,resource,type)
+        VALUES
+            (#{id},#{parentId},#{name},#{desc},#{authority},#{type})
+    </insert>
+    <delete id="deleteAuthority">
+        DELETE FROM ss_authority
+        WHERE id = #{id, jdbcType=INTEGER}
+    </delete>
+    <update id="updateAuthority">
+        UPDATE ss_authority
+        <set>
+            <if test="parentId != null">
+                parent_id = #{parentId},
+            </if>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="desc != null">
+                `desc` = #{desc},
+            </if>
+            <if test="authority != null">
+                resource = #{authority},
+            </if>
+            <if test="type != null">
+                type = #{type}
+            </if>
+<!--            <if test="createAt != null">-->
+<!--                NOW()-->
+<!--            </if>-->
+        </set>
+        WHERE id = #{id, jdbcType=INTEGER}
+    </update>
+</mapper>

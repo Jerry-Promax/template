@@ -1,0 +1,25 @@
+server:
+  port: 8080
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${ip}:3306/air_manager?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+#  rabbitmq:
+#    host: 192.168.126.128
+#    port: 5672
+#    username: guest
+#    password: guest
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+ip: localhost
+logging:
+  level:
+    com.example.demo.mapper: DEBUG
+jwt:
+  expiration: 86400000
+  secret: ThisIsASecretKeyForJWT123456789012345678901234567890123456789012345678901234567890
